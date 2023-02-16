@@ -1,0 +1,5 @@
+geometry_msgs/PoseStamped target_pose
+---
+float64 final_error
+---
+float64 inter_error
