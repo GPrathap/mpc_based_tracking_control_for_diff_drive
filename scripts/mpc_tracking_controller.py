@@ -140,5 +140,5 @@ class MPCDiffDriveControl():
         self.X0 = ca.vertcat(x0_rest, x0_last)
         self.mpciter = self.mpciter + 1
         self.error_ =  ca.norm_2(self.x0-self.xs)
-        return  self.u0[0,:].full().flatten(), self.x0
+        return  self.u0[0,:].full().flatten(), self.x0.full().flatten()
     

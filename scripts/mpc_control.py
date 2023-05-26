@@ -71,6 +71,10 @@ class MPCControl():
             self.set_q_init = np.array([msg.pose.pose.position.x, msg.pose.pose.position.y, yaw])
             self.q = self.set_q_init
         self.odom_pose = np.array([msg.pose.pose.position.x, msg.pose.pose.position.y, yaw])
+        self.odom_control = np.array([msg.twist.twist.linear.x, msg.twist.twist.angular.z])
+        
+    def get_current_pose(self, ):
+        return self.odom_pose, self.odom_control 
     
     def mpc_planner_init(self, target_pose):
         self.mpc_solver = MPCDiffDriveControl(self.Ts, 20, 1.0)
@@ -81,8 +85,10 @@ class MPCControl():
             self.mpc_solver.init_regulator(self.q, target_pose)
         
     def move_one_step(self, ):
+        u = np.array([-2000, -2000])
+        x_pred = np.array([-2000, -2000, 2000])
         if(self.mpc_solver.init_reg):
-            u, _ = self.mpc_solver.update(self.odom_pose)
+            u, x_pred = self.mpc_solver.update(self.odom_pose)
             v = u[0]
             w = u[1]
             self.send_vel(v, w)
@@ -94,6 +100,7 @@ class MPCControl():
             print("Error: ", self.error, " current state : " , self.odom_pose, "target state: ", self.target_pose)
             if(self.error< self.min_acceptable_error):
                 self.success = True 
+        return u, x_pred 
         
     # def timer_callback(self, msg):
     #     self.mpc_planner()

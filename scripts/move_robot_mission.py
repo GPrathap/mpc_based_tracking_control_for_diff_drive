@@ -6,6 +6,9 @@ import tf
 import actionlib
 from geometry_msgs.msg import PoseStamped
 from nav_husky_robot.msg import ExecuteControlGoal, ExecuteControlAction
+import rosservice 
+from std_srvs.srv import Empty
+
 
 class MoveRobot():
 
@@ -38,12 +41,28 @@ class MoveRobot():
                         done_cb=self.callback_done)
         client.wait_for_result()
         return client.get_result()
+    
+    def execute_random_trajectory(self):
+        client = actionlib.SimpleActionClient('husky_planner', ExecuteControlAction)
+        client.wait_for_server()
+        reset_sim = rospy.ServiceProxy('/gazebo/reset_simulation', Empty)
+        while True:
+            rand_xy = np.random.uniform(-5,5, 2)
+            rand_theta = np.random.uniform(-np.pi/3, np.pi/3, 1)
+            target_location = np.array([rand_xy[0], rand_xy[1], rand_theta])
+            goal = self.create_goal_message(target_location)
+            client.send_goal(goal, active_cb=self.callback_active, feedback_cb=self.callback_feedback,
+                            done_cb=self.callback_done)
+            client.wait_for_result()
+            # msg = Empty()
+            # reset_sim()
+        return 
 
 if __name__ == '__main__':
     rospy.init_node('husky_planner_mission')
     try:
-        target_pose = np.array([5,5, np.pi/4])
+        # target_location = np.array([5,5, np.pi/4])
         husky_mission = MoveRobot()
-        husky_mission.execute_mission(target_pose)
+        husky_mission.execute_random_trajectory()
     except rospy.ROSInterruptException:
         print("program interrupted before completion")
